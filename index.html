@@ -20,7 +20,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-off
 .list{padding:0 16px;display:grid;gap:8px}
 .item{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
 .item .nm{flex:1}.item .pr{color:var(--mu);font-size:.85rem}
-.qty{display:flex;align-items:center;gap:8px}.opt{flex-basis:100%;display:flex;gap:8px}.opt button{flex:1;padding:8px}
+.qty{display:flex;align-items:center;gap:8px}.opt{flex-basis:100%;display:flex;gap:8px}.opt button{flex:1;padding:8px}.item .part{flex-basis:100%;padding:8px 10px}
 .qty button{padding:4px 12px;font-size:1.1rem}
 .del{background:none;color:var(--mu);padding:4px 8px;font-weight:400}
 #bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
@@ -39,7 +39,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-off
 <label style="display:block;margin-top:6px;font-size:.85rem;color:var(--mu)"><input type="checkbox" id="bp" style="width:auto;padding:0;vertical-align:middle"> Printer berbunyi beep saat nota tercetak</label></div>
 <script>
 const SV=['000018f0-0000-1000-8000-00805f9b34fb','0000ff00-0000-1000-8000-00805f9b34fb','0000ffe0-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2','49535343-fe7d-4ae5-8fa9-9fafd205e455','0000fee7-0000-1000-8000-00805f9b34fb'];
-let menu=[{n:'LALAPAN AYAM',p:35000},{n:'LALAPAN BEBEK',p:40000},{n:'BAKSO',p:20000},{n:'NASI GORENG',p:20000},{n:'SOTO',p:20000},{n:'LALAPAN NILA',p:40000}],cart={},mode={},ch=null,ed=-1;
+let menu=[{n:'LALAPAN AYAM',p:35000},{n:'LALAPAN BEBEK',p:40000},{n:'BAKSO',p:20000},{n:'NASI GORENG',p:20000},{n:'SOTO',p:20000},{n:'LALAPAN NILA',p:40000}],cart={},mode={},part={},ch=null,ed=-1;
 try{const m=JSON.parse(localStorage.getItem('menu'));if(Array.isArray(m)&&m.length)menu=m;document.getElementById('shop').value=localStorage.getItem('shop')||''}catch(e){}
 const $=i=>document.getElementById(i),rp=n=>'Rp'+n.toLocaleString('id-ID');
 const st=t=>$('st').textContent=t;
@@ -47,15 +47,15 @@ function save(){try{localStorage.setItem('menu',JSON.stringify(menu));st('Menu t
 function render(){
  $('menu').innerHTML='';
  menu.forEach((m,i)=>{const q=cart[i]||0,d=document.createElement('div');d.className='item';
-  d.innerHTML='<div class="nm"><div></div><div class="pr">'+rp(m.p)+'</div></div><div class="qty"><button class="sec" data-a="-">−</button><b>'+q+'</b><button data-a="+">+</button></div><button class="del" data-a="e" aria-label="Ubah menu">✎</button><button class="del" data-a="x" aria-label="Hapus menu">✕</button>'+(q?'<div class="opt"><button class="'+((mode[i]||'s')==='s'?'':'sec')+'" data-a="s">Makan sini</button><button class="'+(mode[i]==='b'?'':'sec')+'" data-a="b">Bungkus</button></div>':'');
-  d.firstChild.firstChild.textContent=m.n;
-  d.onclick=e=>{const a=e.target.dataset.a;if(a==='+')cart[i]=q+1;else if(a==='-'){cart[i]=Math.max(0,q-1);if(!cart[i])delete mode[i]}else if(a==='s'||a==='b')mode[i]=a;else if(a==='x'){menu.splice(i,1);cart={};mode={};ed=-1;save()}else if(a==='e'){ed=i;$('an').value=m.n;$('ap').value=m.p;$('add').textContent='Simpan';$('an').focus();return}else return;render()};
+  d.innerHTML='<div class="nm"><div></div><div class="pr">'+rp(m.p)+'</div></div><div class="qty"><button class="sec" data-a="-">−</button><b>'+q+'</b><button data-a="+">+</button></div><button class="del" data-a="e" aria-label="Ubah menu">✎</button><button class="del" data-a="x" aria-label="Hapus menu">✕</button>'+(q?'<div class="opt"><button class="'+((mode[i]||'s')==='s'?'':'sec')+'" data-a="s">Makan sini</button><button class="'+(mode[i]==='b'?'':'sec')+'" data-a="b">Bungkus</button></div><input class="part" data-a="p" maxlength="24" placeholder="Bagian (mis. paha, dada)">':'');
+  d.firstChild.firstChild.textContent=m.n;const pi=d.querySelector('.part');if(pi){pi.value=part[i]||'';pi.oninput=()=>{part[i]=pi.value}}
+  d.onclick=e=>{const a=e.target.dataset.a;if(a==='+')cart[i]=q+1;else if(a==='-'){cart[i]=Math.max(0,q-1);if(!cart[i]){delete mode[i];delete part[i]}}else if(a==='s'||a==='b')mode[i]=a;else if(a==='x'){menu.splice(i,1);cart={};mode={};part={};ed=-1;save()}else if(a==='e'){ed=i;$('an').value=m.n;$('ap').value=m.p;$('add').textContent='Simpan';$('an').focus();return}else return;render()};
   $('menu').appendChild(d)});
  let c=0,s=0;menu.forEach((m,i)=>{const q=cart[i]||0;c+=q;s+=q*m.p});
  $('cnt').textContent=c+' item';$('sum').textContent=rp(s)}
 $('add').onclick=()=>{const n=$('an').value.trim(),p=parseInt($('ap').value);if(!n||!(p>=0)){st('Isi nama dan harga menu.');return}if(ed>=0){menu[ed]={n,p};ed=-1;$('add').textContent='Tambah'}else menu.push({n,p});$('an').value=$('ap').value='';save();render()};
 $('shop').oninput=()=>{try{localStorage.setItem('shop',$('shop').value)}catch(e){}};
-$('clr').onclick=()=>{cart={};mode={};render()};
+$('clr').onclick=()=>{cart={};mode={};part={};render()};
 const W=24,enc=new TextEncoder();
 const ascii=s=>s.normalize('NFD').replace(/[^\x20-\x7e]/g,'');
 function line(l,r){l=ascii(l);r=r||'';const sp=Math.max(1,W-l.length-r.length);return l+' '.repeat(sp)+r+'\n'}
@@ -63,7 +63,7 @@ function receipt(){
  const b=[],t=s=>b.push(...enc.encode(s)),sh=ascii($('shop').value.trim()||'Toko');
  const now=new Date().toLocaleString('id-ID');let tot=0;
  b.push(0x1b,0x40,0x1b,0x61,1,0x1d,0x21,0x11,0x1b,0x45,1);t(sh+'\n');b.push(0x1b,0x45,0,0x1d,0x21,0);t(now+'\n');b.push(0x1d,0x21,0x11,0x1b,0x61,0);const cu=ascii($('cust').value.trim());if(cu)t('Nama: '+cu+'\n');t('-'.repeat(W)+'\n');
- menu.forEach((m,i)=>{const q=cart[i]||0;if(!q)return;tot+=q*m.p;const sub=(q*m.p).toLocaleString('id-ID');t(line(q+' '+ascii(m.n).slice(0,Math.max(1,W-sub.length-(q+'').length-2)),sub));t('  '+(mode[i]==='b'?'BUNGKUS':'MAKAN SINI')+'\n')});
+ menu.forEach((m,i)=>{const q=cart[i]||0;if(!q)return;tot+=q*m.p;const sub=(q*m.p).toLocaleString('id-ID');t(line(q+' '+ascii(m.n).slice(0,Math.max(1,W-sub.length-(q+'').length-2)),sub));t('  '+(mode[i]==='b'?'BUNGKUS':'MAKAN SINI')+'\n');const pt=ascii(part[i]||'').trim();if(pt)t('  '+pt.toUpperCase()+'\n');t('\n')});
  t('-'.repeat(W)+'\n');b.push(0x1b,0x45,1);t(line('TOTAL',rp(tot)));b.push(0x1b,0x45,0,0x1b,0x61,1);t('\nTerima kasih\n\n');b.push(0x1d,0x56,0x42,0x00);if($('bp').checked)b.push(0x1b,0x42,3,2);
  return{bytes:new Uint8Array(b),tot}}
 async function connect(){
@@ -84,7 +84,7 @@ $('prt').onclick=async()=>{
   for(let i=0;i<r.bytes.length;i+=100){const p=r.bytes.slice(i,i+100);
    if(ch.properties.writeWithoutResponse)await ch.writeValueWithoutResponse(p);else await ch.writeValue(p);
    await new Promise(z=>setTimeout(z,30))}
-  st('Nota tercetak.');cart={};mode={};$('cust').value='';render()
+  st('Nota tercetak.');cart={};mode={};part={};$('cust').value='';render()
  }catch(e){st('Gagal mencetak: '+e.message)}};
 try{$('bp').checked=localStorage.getItem('bp')!=='0'}catch(e){}$('bp').onchange=()=>{try{localStorage.setItem('bp',$('bp').checked?'1':'0')}catch(e){}};
 render();
